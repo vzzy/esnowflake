@@ -50,7 +50,6 @@ max_seq()->
 	gen_server:call(?MODULE,max_seq).
 
 init([Millisecond]) ->
-	mnesia:start(),
 	mnesia:create_table(node,[
 		{ram_copies, [node()]},
         {type, set},
