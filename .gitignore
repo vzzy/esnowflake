@@ -1,3 +1,5 @@
+.project
+rebar.lock
 .rebar3
 _*
 .eunit

@@ -14,7 +14,6 @@
 -export([init/1]).
 
 -define(SERVER, ?MODULE).
-
 %%====================================================================
 %% API functions
 %%====================================================================
@@ -28,7 +27,13 @@ start_link() ->
 
 %% Child :: {Id,StartFunc,Restart,Shutdown,Type,Modules}
 init([]) ->
-    {ok, { {one_for_all, 0, 1}, []} }.
+	Millisecond = case application:get_env(millisecond) of
+		{ok, M} ->
+			M;
+		_->
+			esnowflake_id:get_default_TIMESTAMP()
+	end,
+    {ok, { {one_for_one,1000, 600}, [{esnowflake_id,{esnowflake_id,start_link,[Millisecond]},permanent,2000,worker,[esnowflake_id]}]} }.
 
 %%====================================================================
 %% Internal functions
