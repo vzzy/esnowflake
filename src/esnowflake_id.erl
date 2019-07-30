@@ -18,7 +18,7 @@
 	parse_id/1,
 	parse_id/2,
 	
-	max_seq/0,
+	get_node_id/0,
 	get_default_TIMESTAMP/0
 ]).
 
@@ -44,6 +44,9 @@ start_link(Millisecond) ->
 id()->
 	gen_server:call(?MODULE,id).
 
+get_node_id()->
+	gen_server:call(?MODULE,get_node_id).
+
 set_node_id(Node_id) when Node_id>=0 andalso Node_id<4096->
 	gen_server:call(?MODULE,{set_node_id,Node_id});
 set_node_id(_Node_id)->
@@ -58,9 +61,8 @@ init([Millisecond]) ->
 		seq = 0	
 	}}.
 
-handle_call(max_seq, _From, #state{max_seq = Max_seq } = State) ->
-	{reply, Max_seq, State};
-
+handle_call(get_node_id, _From, #state{node_id=Node_id} = State) ->
+	{reply, {ok,Node_id}, State};
 handle_call({set_node_id,Node_id}, _From, State) when Node_id>=0 andalso Node_id<4096->
 	{reply, {ok,node()}, State#state{node_id=Node_id}};
 handle_call(id, _From, #state{node_id = none} = State) ->

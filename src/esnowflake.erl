@@ -6,6 +6,7 @@
 	
 	id/0,
 	set_node_id/1,
+	get_node_id/0,
 	parse/1,
 	parse/2,
 	
@@ -21,6 +22,11 @@ id()->
 %% return {ok,node()} | {error,Reason}
 set_node_id(Node_id)->
 	esnowflake_id:set_node_id(Node_id).
+%% 获取node_id
+%% @param Node_id [0,4096)
+%% return {ok,Node_id}
+get_node_id()->
+	esnowflake_id:get_node_id().
 %% 解析ID
 %% esnowflake:parse(510974385717252097). 
 %% return {1545192446750,1,1}
