@@ -13,7 +13,8 @@
 -export([
 	start_link/1,
 
-	id/1,
+	id/0,
+	set_node_id/1,
 	parse_id/1,
 	parse_id/2,
 	
@@ -27,6 +28,7 @@
 %% Behavioural functions
 %% ====================================================================
 -record(state, {
+	node_id = none,
 	timestamp = ?TIMESTAMP,
 	
 	now = 0,
@@ -39,10 +41,13 @@
 start_link(Millisecond) ->
     gen_server:start_link({local,?MODULE},?MODULE, [Millisecond], []).
 
-id(Node_id) when Node_id>0 andalso Node_id=<4095->
-	gen_server:call(?MODULE,{id,Node_id});
-id(Node_id)->
-	{error,<<"node id must range of (0,4096]">>}.
+id()->
+	gen_server:call(?MODULE,id).
+
+set_node_id(Node_id) when Node_id>=0 andalso Node_id<4096->
+	gen_server:call(?MODULE,{set_node_id,Node_id});
+set_node_id(_Node_id)->
+	{error,<<"node id must range of [0,4096)">>}.
 
 max_seq()->
 	gen_server:call(?MODULE,max_seq).
@@ -55,7 +60,13 @@ init([Millisecond]) ->
 
 handle_call(max_seq, _From, #state{max_seq = Max_seq } = State) ->
 	{reply, Max_seq, State};
-handle_call({id,Node_id}, _From, #state{
+
+handle_call({set_node_id,Node_id}, _From, State) when Node_id>=0 andalso Node_id<4096->
+	{reply, {ok,node()}, State#state{node_id=Node_id}};
+handle_call(id, _From, #state{node_id = none} = State) ->
+	{reply, {error,<<"node id must range of [0,4096)">>}, State};
+handle_call(id, _From, #state{
+			node_id = Node_id,					
 			timestamp = Millisecond,
 			
 			now = L_Now,

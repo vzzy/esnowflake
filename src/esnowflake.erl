@@ -4,7 +4,8 @@
 	start/0,
 	stop/0,
 	
-	id/1,
+	id/0,
+	set_node_id/1,
 	parse/1,
 	parse/2,
 	
@@ -12,10 +13,14 @@
 ]).
 
 %% 获取id  
-%% @param Node_id 0~4095
 %% return {ok,Id} | {error,Reason}
-id(Node_id)->
-	esnowflake_id:id(Node_id).
+id()->
+	esnowflake_id:id().
+%% 设置node_id
+%% @param Node_id [0,4096)
+%% return {ok,node()} | {error,Reason}
+set_node_id(Node_id)->
+	esnowflake_id:set_node_id(Node_id).
 %% 解析ID
 %% esnowflake:parse(510974385717252097). 
 %% return {1545192446750,1,1}
@@ -29,7 +34,7 @@ parse(Id,Millisecond)->
 test(Num)->
 	{Time, _Value} = timer:tc(fun()-> 
 		lists:foreach(fun(_)-> 
-			id(1)					  
+			id()					  
 		end,lists:seq(1,Num))			 
 	end),
 	Time / 1000000.

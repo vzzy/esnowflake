@@ -19,7 +19,8 @@ Build
 -----
 
     $ make all
-    > {ok,Id} = esnowflake:id(1).
+    > {ok,Node} = esnowflake:set_node_id(1).
+    > {ok,Id} = esnowflake:id().
     {ok,305487259736477697}
     > esnowflake:parse(Id).
     {1564480497625,1,1}
