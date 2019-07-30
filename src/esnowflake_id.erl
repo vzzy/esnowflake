@@ -5,19 +5,18 @@
 -module(esnowflake_id).
 -behaviour(gen_server).
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
-%% since 2018-01-01 00:00:00.000
--define(TIMESTAMP, 1514736000000). 
+%% since 2019-01-01 00:00:00.000
+-define(TIMESTAMP, 1546272000000). 
 %% ====================================================================
 %% API functions
 %% ====================================================================
 -export([
 	start_link/1,
 
-	id/0,
+	id/1,
 	parse_id/1,
 	parse_id/2,
 	
-	node_id/0,
 	max_seq/0,
 	get_default_TIMESTAMP/0
 ]).
@@ -28,7 +27,6 @@
 %% Behavioural functions
 %% ====================================================================
 -record(state, {
-	node_id = none,	
 	timestamp = ?TIMESTAMP,
 	
 	now = 0,
@@ -36,46 +34,28 @@
 
 	max_seq = 0
 }).
--record(node, {
-	name,
-    id
-}).
 
 %% 启动 {ok,Pid} | ignore | {error,Error}
 start_link(Millisecond) ->
     gen_server:start_link({local,?MODULE},?MODULE, [Millisecond], []).
 
-id()->
-	gen_server:call(?MODULE,id).
-
-node_id()->
-	gen_server:call(?MODULE,node_id).
+id(Node_id) when Node_id>0 andalso Node_id=<4095->
+	gen_server:call(?MODULE,{id,Node_id});
+id(Node_id)->
+	{error,<<"node id must range of (0,4096]">>}.
 
 max_seq()->
 	gen_server:call(?MODULE,max_seq).
 
 init([Millisecond]) ->
-	mnesia:create_table(node,[
-		{ram_copies, [node()]},
-        {type, set},
-        {attributes, record_info(fields, node)}
-	]),
-    mnesia:add_table_copy(node, node(), ram_copies),
-	ok = register_node(node()),
-	{ok, Node_id} = select_node_id(node()),
-
     {ok, #state{
-		node_id = Node_id,	
 		timestamp = Millisecond,
 		seq = 0	
 	}}.
 
-handle_call(node_id, _From, #state{node_id = Node_id} = State) ->
-	{reply, Node_id, State};
 handle_call(max_seq, _From, #state{max_seq = Max_seq } = State) ->
 	{reply, Max_seq, State};
-handle_call(id, _From, #state{
-			node_id = Node_id,	
+handle_call({id,Node_id}, _From, #state{
 			timestamp = Millisecond,
 			
 			now = L_Now,
@@ -96,7 +76,7 @@ handle_call(id, _From, #state{
 			Max_seq
 	end,
 	<<Id:64>> = make_id(Now,Millisecond,Node_id,New_Seq),
-    {reply, Id, State#state{
+    {reply, {ok,Id}, State#state{
 		now = Now,
 		seq = New_Seq,
 		max_seq = New_Max_seq
@@ -135,28 +115,4 @@ get_timestamp() ->
 
 get_default_TIMESTAMP()->
 	?TIMESTAMP.
-
-%% 机器节点注册
-register_node(NodeName) ->
-    {atomic, _} = mnesia:transaction(fun() ->
-        case mnesia:read(node, NodeName) of
-            [] ->
-                mnesia:write(#node{name = NodeName, id = next_node_id()});
-            [_] -> 
-				ok
-        end
-    end),
-    ok.
-next_node_id() ->
-    max_node_id() + 1.
-max_node_id() ->
-    mnesia:foldl(fun(#node{id=Id}, Max) -> max(Id, Max) end, 0, node).
-select_node_id(NodeName) ->
-    case mnesia:dirty_read(node, NodeName) of
-        [#node{id=Id}] -> 
-			{ok, Id};
-        [] -> 
-			{error, not_found}
-    end.
-
 

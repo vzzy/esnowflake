@@ -4,19 +4,18 @@
 	start/0,
 	stop/0,
 	
-	id/0,
+	id/1,
 	parse/1,
 	parse/2,
 	
-	test/0,
 	test/1
 ]).
 
 %% 获取id  
-%% esnowflake:id().
-%% return Id
-id()->
-	esnowflake_id:id().
+%% @param Node_id 0~4095
+%% return {ok,Id} | {error,Reason}
+id(Node_id)->
+	esnowflake_id:id(Node_id).
 %% 解析ID
 %% esnowflake:parse(510974385717252097). 
 %% return {1545192446750,1,1}
@@ -26,17 +25,14 @@ parse(Id,Millisecond)->
 	esnowflake_id:parse_id(Id,Millisecond).
 
 %% 10w 并发，查看最大seq是否超越8192序
-%% esnowflake:test().
-test()->
-	test(250000).
+%% esnowflake:test(250000).
 test(Num)->
-	List = lists:seq(1,Num),
-	lists:foreach(fun(_)-> 
-		spawn(fun()-> 
-			id()			  
-		end)					  
-	end,List),
-	esnowflake_id:max_seq().
+	{Time, _Value} = timer:tc(fun()-> 
+		lists:foreach(fun(_)-> 
+			id(1)					  
+		end,lists:seq(1,Num))			 
+	end),
+	Time / 1000000.
 
 %% 启动方法
 start()->
