@@ -85,8 +85,8 @@ handle_call(id, _From, #state{
 		true->
 			Max_seq
 	end,
-	Id = make_id(Now,Millisecond,Node_id,New_Seq),
-    {reply, {ok,Id}, State#state{
+	<<Id:64>> = make_id(Now,Millisecond,Node_id,New_Seq),
+    {reply, {ok,integer_to_binary(Id)}, State#state{
 		now = Now,
 		seq = New_Seq,
 		max_seq = New_Max_seq
