@@ -52,9 +52,6 @@ set_node_id(Node_id) when Node_id>=0 andalso Node_id<4096->
 set_node_id(_Node_id)->
 	{error,<<"node id must range of [0,4096)">>}.
 
-max_seq()->
-	gen_server:call(?MODULE,max_seq).
-
 init([Millisecond]) ->
     {ok, #state{
 		timestamp = Millisecond,
@@ -88,7 +85,7 @@ handle_call(id, _From, #state{
 		true->
 			Max_seq
 	end,
-	<<Id:64>> = make_id(Now,Millisecond,Node_id,New_Seq),
+	Id = make_id(Now,Millisecond,Node_id,New_Seq),
     {reply, {ok,Id}, State#state{
 		now = Now,
 		seq = New_Seq,

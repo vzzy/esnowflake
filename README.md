@@ -22,7 +22,7 @@ Build
     > {ok,Node} = esnowflake:set_node_id(1).
     > {ok,Node_id} = esnowflake:get_node_id().
     > {ok,Id} = esnowflake:id().
-    {ok,305487259736477697}
+    {ok,<<"305487259736477697">>}
     > esnowflake:parse(Id).
     {1564480497625,1,1}
     
