@@ -6,7 +6,7 @@
 -behaviour(gen_server).
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 %% since 2019-01-01 00:00:00.000
--define(TIMESTAMP, 1546272000000). 
+-define(TIMESTAMP, 1576561071000). 
 %% ====================================================================
 %% API functions
 %% ====================================================================
@@ -105,9 +105,10 @@ code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
 %% 获取ID
+%% erlang这边没有负数高位概念
 make_id(Now,Millisecond,Node_id,Seq)->
 	Gap = Now - Millisecond,
-	<<0:1,Gap:41,Node_id:10,Seq:12>>.
+	<<Gap:40,Node_id:12,Seq:12>>.
 
 %% 反解ID
 parse_id(Id)->
@@ -115,7 +116,7 @@ parse_id(Id)->
 parse_id(Id,Millisecond) when is_integer(Id)->
 	parse_id(<<Id:64>>,Millisecond);
 parse_id(Id,Millisecond)->
-	<<0:1,Gap:41,Node_id:10,Seq:12>> = Id,
+	<<Gap:40,Node_id:12,Seq:12>> = Id,
 	{Gap + Millisecond,Node_id,Seq}.
 
 %%获取从公元1970年到当前时间的毫秒数
